@@ -1,27 +1,18 @@
-# DualNBack
+# Dual N-Back game in Angular with NgRx
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 1.4.9.
+This game is modeled after [Brain Workshop - a Dual N-Back game](http://brainworkshop.sourceforge.net/)
 
-## Development server
+This purpose of this project is to learn and demonstrate out to use NgRx.
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The app will automatically reload if you change any of the source files.
+This app also uses SVG for the game, demonstrating out to use Angular to manipulate SVG  
 
-## Code scaffolding
+##### Thank you to our sponsor [Surge](https://www.surgeforward.com/) who offers America’s best software engineers, on demand, at rates 30-50% less than the competition. 
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
 
-## Build
+TODO's:
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory. Use the `-prod` flag for a production build.
-
-## Running unit tests
-
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## Running end-to-end tests
-
-Run `ng e2e` to execute the end-to-end tests via [Protractor](http://www.protractortest.org/).
-
-## Further help
-
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI README](https://github.com/angular/angular-cli/blob/master/README.md).
+* unit tests
+* scoring
+* reporting
+* game history
+* auto level up 

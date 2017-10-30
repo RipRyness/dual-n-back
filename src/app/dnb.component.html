@@ -1,0 +1,30 @@
+<div class="board-container">
+  <div class="board">
+    <svg id="dnbBoard"
+         xmlns="http://www.w3.org/2000/svg"
+         [attr.width]="layout.width"
+         [attr.height]="layout.height"
+         [attr.x]="layout.x"
+         [attr.y]="layout.y"
+         [style.background-color]="layout.bgColor">
+      <line *ngFor="let line of lines"
+            [style.stroke]="line.color"
+            [style.stroke-width]="line.width"
+            [attr.x1]="line.x1"
+            [attr.x2]="line.x2"
+            [attr.y1]="line.y1"
+            [attr.y2]="line.y2"
+            stroke-opacity="1"></line>
+      <svg:rect *ngFor="let cell of cells; index as i;"
+                [attr.width]="cell.width"
+                [attr.height]="cell.height"
+                [attr.x]="cell.x"
+                [attr.y]="cell.y"
+                [attr.fill]="cell.bgColor"
+                [attr.fill-opacity]="1"
+                [attr.visibility]="positionIndex === i ? '' : 'hidden'"
+                rx="10" ry="10">
+      </svg:rect>
+    </svg>
+  </div>
+</div>
