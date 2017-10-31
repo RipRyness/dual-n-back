@@ -3,34 +3,30 @@ import { environment } from '../../environments/environment';
 import { State } from './dnb.interfaces';
 import { storeFreeze } from 'ngrx-store-freeze';
 import * as actions from './dnb.actions';
-import * as store from './dnb.interfaces';
+import * as models from './dnb.interfaces';
 import * as storeService from './dnb.store-service';
 
 export const reducers: ActionReducerMap<State> = {
   game: reducer
 };
 
-export function logger(reducer: ActionReducer<State>): ActionReducer<State> {
+export function logger(reducerFn: ActionReducer<State>): ActionReducer<State> {
   return function(state: State, action: any): State {
     console.log('state', state);
     console.log('action', action);
 
-    return reducer(state, action);
+    return reducerFn(state, action);
   };
 }
 
 export const metaReducers: MetaReducer<State>[] = !environment.production ? [logger, storeFreeze] : [];
 
-export function reducer(state = storeService.newGame(), action: actions.Actions): store.Game {
+export function reducer(state = storeService.newGame(), action: actions.Actions): models.Game {
   switch (action.type) {
     case actions.START_GAME: {
       return state.inProgress
         ? state
-        : {
-            ...storeService.newGame(),
-            completedRounds: [],
-            inProgress: true
-          };
+        : action.payload;
     }
     case actions.END_GAME: {
       return {
@@ -39,20 +35,20 @@ export function reducer(state = storeService.newGame(), action: actions.Actions)
       };
     }
     case actions.FIRE_ROUND: {
-      const completeRound = function(round: store.Round): store.CompletedRound {
+      const completeRound = function(round: models.Round): models.RoundResult {
         if (round.index < state.nBack) {
-          return {
-            result: storeService.newResult(),
-            round: round
-          };
+          return storeService.newResult(round);
         }
         const soundClaim = round.claims.find(claim => claim.type === 'sound'),
           positionClaim = round.claims.find(claim => claim.type === 'position'),
-          compareRound = state.completedRounds[round.index - state.nBack].round,
-          soundCorrect = !soundClaim ? false : compareRound.soundIndex === soundClaim.index,
-          positionCorrect = !positionClaim ? false : compareRound.positionIndex === positionClaim.index,
-          score = (soundCorrect ? 1 : 0) + (positionCorrect ? 1 : 0),
-          result: store.RoundResult = {
+          compareRound = state.results[round.index - state.nBack].round,
+          needPositionClaim = compareRound.positionIndex === round.positionIndex,
+          needSoundClaim = compareRound.soundIndex === round.soundIndex,
+          soundCorrect = needSoundClaim === !!soundClaim,
+          positionCorrect = needPositionClaim === !!positionClaim,
+          score = (soundCorrect ? 1 : 0) + (positionCorrect ? 1 : 0);
+          return {
+            round: round,
             compareRound: compareRound,
             madePositionClaim: !!positionClaim,
             madeSoundClaim: !!soundClaim,
@@ -61,17 +57,12 @@ export function reducer(state = storeService.newGame(), action: actions.Actions)
             score: score,
             soundCorrect: soundCorrect
           };
-
-        return {
-          result: result,
-          round: round
-        };
       };
 
       return action.payload ? {
         ...state,
         currentRound: action.payload,
-        completedRounds: !state.currentRound ? [] : [...state.completedRounds, completeRound(state.currentRound)]
+        results: !state.currentRound ? [] : [...state.results, completeRound(state.currentRound)]
       } : state;
     }
     case actions.CLAIM_MADE: {

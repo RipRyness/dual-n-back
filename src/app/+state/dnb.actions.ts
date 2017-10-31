@@ -1,9 +1,10 @@
-import { Claim, Round } from './dnb.interfaces';
 import { Action } from '@ngrx/store';
-export const START_GAME = 'START_GAME';
+import { Claim, Game, Round, RoundResult } from './dnb.interfaces';
+export const CLAIM_MADE = 'CLAIM_MADE';
 export const END_GAME = 'END_GAME';
 export const FIRE_ROUND = 'FIRE_ROUND';
-export const CLAIM_MADE = 'CLAIM_MADE';
+export const ROUND_COMPLETE = 'ROUND_COMPLETE';
+export const START_GAME = 'START_GAME';
 
 /**
  * Actions
@@ -12,7 +13,7 @@ export const CLAIM_MADE = 'CLAIM_MADE';
 export class StartGame implements Action {
   readonly type = START_GAME;
 
-  constructor() {
+  constructor(public payload: Game) {
     console.log(this.type);
   }
 }
@@ -33,6 +34,14 @@ export class FireRound implements Action {
   }
 }
 
+export class RoundComplete implements Action {
+  readonly type = ROUND_COMPLETE;
+
+  constructor(public payload: RoundResult) {
+    console.log(this.type);
+  }
+}
+
 export class ClaimMaid implements Action {
   readonly type = CLAIM_MADE;
 
@@ -41,4 +50,4 @@ export class ClaimMaid implements Action {
   }
 }
 
-export type Actions = StartGame | EndGame | FireRound | ClaimMaid;
+export type Actions = StartGame | EndGame | FireRound | RoundComplete | ClaimMaid;

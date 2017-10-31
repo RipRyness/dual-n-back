@@ -1,4 +1,14 @@
 <div class="board-container">
+  <table *ngIf="gameState">
+    <tr>
+      <td>Round</td>
+      <td>{{gameState.round}} of {{gameState.totalRounds}}</td>
+    </tr>
+    <tr>
+      <td>Score</td>
+      <td>{{gameState.totalScore}} / {{gameState.possibleScore}} ({{gameState.totalScore/gameState.possibleScore | percent}})</td>
+    </tr>
+  </table>
   <div class="board">
     <svg id="dnbBoard"
          xmlns="http://www.w3.org/2000/svg"

@@ -1,13 +1,15 @@
 import { Actions } from '@ngrx/effects';
-import { Game, Round } from './+state/dnb.interfaces';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Directive, HostListener, OnInit } from '@angular/core';
-import { DnbBoardLayout } from './dnb.view-model';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, HostListener, OnInit } from '@angular/core';
+import {DnbBoardLayout, GameState} from './dnb.view-model';
 import { Howl } from 'howler';
 import { Store } from '@ngrx/store';
 import { Subject } from 'rxjs/Subject';
-import 'rxjs/add/operator/takeUntil';
+import { Game, Round, RoundResult } from './+state/dnb.interfaces';
+import { sumBy } from 'lodash-es';
+import * as storeSvc from './+state/dnb.store-service';
 import * as actions from './+state/dnb.actions';
 import * as models from './dnb.view-model';
+import 'rxjs/add/operator/takeUntil';
 
 @Component({
   selector: 'dnb-root',
@@ -18,16 +20,20 @@ import * as models from './dnb.view-model';
 export class DnbComponent implements OnInit {
 
   constructor(private store: Store<Game>, private updates$: Actions, private cd: ChangeDetectorRef) { }
-  destroyed$ = new Subject<boolean>();
+  readonly destroyed$ = new Subject<boolean>();
   cells = Array<models.DnbBoardCell>();
   layout: DnbBoardLayout;
   lines = Array<models.DnbBoardLine>();
   sounds = Array<Howl>();
   positionIndex = -1;
+  gameState: GameState;
+  private _currentRound: Round;
 
   @HostListener('document:keyup.space', ['$event'])
   onSpaceBar() {
-    this.store.dispatch(new actions.StartGame());
+    if (!this.gameState) {
+      this.store.dispatch(new actions.StartGame(storeSvc.newGame()));
+    }
   }
 
   @HostListener('document:keyup.escape', ['$event'])
@@ -35,7 +41,24 @@ export class DnbComponent implements OnInit {
     this.store.dispatch(new actions.EndGame());
   }
 
-  _handleRound(round: Round) {
+  @HostListener('document:keyup.a', ['$event'])
+  positionClaim() {
+    this.store.dispatch(new actions.ClaimMaid({
+      index: this._currentRound.positionIndex,
+      type: 'position'
+    }));
+  }
+
+  @HostListener('document:keyup.l', ['$event'])
+  soundClaim() {
+    this.store.dispatch(new actions.ClaimMaid({
+      index: this._currentRound.soundIndex,
+      type: 'sound'
+    }));
+  }
+
+  onRoundFired(round: Round) {
+    this._currentRound = round;
     this.sounds[round.soundIndex].play();
     this.positionIndex = round.positionIndex;
     setTimeout(() => {
@@ -43,6 +66,27 @@ export class DnbComponent implements OnInit {
       this.positionIndex = -1;
     }, 1000);
     this.cd.markForCheck();
+  }
+
+  onGameStarted(game: Game) {
+    this.gameState = {
+      round: 0,
+      totalRounds: game.totalRounds,
+      possibleScore: 0,
+      totalScore: 0
+    };
+  }
+
+  processResults(results: RoundResult[]) {
+    if (!this.gameState) {
+      return;
+    }
+    this.gameState = {
+      ...this.gameState,
+      round: results.length,
+      totalScore: sumBy(results, r => r.score),
+      possibleScore: sumBy(results, r => r.possibleScore),
+    };
   }
 
   ngOnInit() {
@@ -63,7 +107,18 @@ export class DnbComponent implements OnInit {
     this.updates$
       .ofType<actions.FireRound>(actions.FIRE_ROUND)
       .takeUntil(this.destroyed$)
-      .do(action => this._handleRound(action.payload))
+      .do(action => this.onRoundFired(action.payload))
+      .subscribe();
+
+    this.updates$
+      .ofType<actions.StartGame>(actions.START_GAME)
+      .takeUntil(this.destroyed$)
+      .do(action => this.onGameStarted(action.payload))
+      .subscribe();
+
+    this.store.select(storeSvc.getRoundResults)
+      .takeUntil(this.destroyed$)
+      .do(results => this.processResults(results))
       .subscribe();
   }
 

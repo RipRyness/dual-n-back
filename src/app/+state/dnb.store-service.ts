@@ -1,12 +1,13 @@
 import { createFeatureSelector, createSelector } from '@ngrx/store';
-import { Claim, Game, Round, RoundResult } from './dnb.interfaces';
+import {Claim, Game, Round, RoundResult} from './dnb.interfaces';
 
 const randomNum = function(bottom, top) {
   return Math.floor(Math.random() * (1 + top - bottom)) + bottom;
 };
 
-const newResult = function() {
+const newResult = function(round: Round) {
   return {
+    round: round,
     compareRound: null,
     madePositionClaim: false,
     madeSoundClaim: false,
@@ -32,17 +33,19 @@ const newBoard = function() {
 
 const newGame = function() {
   return {
-    completedRounds: [],
+    results: [],
     currentRound: null,
     inProgress: false,
     nBack: 2,
+    totalRounds: 24,
     board: newBoard()
   } as Game;
 };
 
 const getGameState = createFeatureSelector<Game>('game');
-const getGame = createSelector(getGameState, game => game);
-const getGameCurrentRound = createSelector(getGame, game => game.currentRound);
-const getGameRounds = createSelector(getGame, game => game.completedRounds);
+const getRoundResults = createSelector(getGameState, game => game.results);
+const getLastRoundResult = createSelector(getGameState, game => game.results.length > 0
+  ? game.results[game.results.length - 1]
+  : newResult(null));
 
-export { newResult, newRound, newGame, getGame, getGameRounds, getGameCurrentRound };
+export { newResult, newRound, newGame, getRoundResults, getLastRoundResult };

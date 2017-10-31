@@ -1,4 +1,5 @@
 export interface RoundResult {
+  round: Round;
   compareRound: Round;
   madePositionClaim: boolean;
   madeSoundClaim: boolean;
@@ -20,16 +21,12 @@ export interface Claim {
   type: 'sound' | 'position';
 }
 
-export interface CompletedRound {
-  result: RoundResult;
-  round: Round;
-}
-
 export interface Game {
-  completedRounds: CompletedRound[];
+  results: RoundResult[];
   currentRound: Round;
   inProgress: boolean;
   nBack: number;
+  totalRounds: number;
 }
 
 export interface State {
